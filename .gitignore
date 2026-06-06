@@ -1,0 +1,59 @@
+git rm -r --cached# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+config.json
+secrets.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+economy.db
+database.db
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Backup files
+*.bak
+*.backup
+*~
