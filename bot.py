@@ -28,6 +28,7 @@ class MyBot(commands.Bot):
     async def setup_hook(self):
         await database.setup_db()
         await self.load_extension("cogs.economy")
+        await self.load_extension("cogs.admin")
         self.tree.copy_global_to(guild=MY_GUILD)
         await self.tree.sync(guild=MY_GUILD)
         print("Bot ready.")
