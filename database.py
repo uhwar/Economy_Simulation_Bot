@@ -13,6 +13,19 @@ async def setup_db():
             )
         """)
         await db.commit()
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS transaction_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                action TEXT NOT NULL,
+                amount INTEGER NOT NULL,
+                balance_after INTEGER NOT NULL,
+                time_stamp TEXT DEFAULT (datetime('now'))
+            )
+        """)
+        await db.commit()
+
 # Bank Heist Functions
 async def rob_bank(user_id: int, amount: int):
     async with aiosqlite.connect(DB_PATH) as db:
@@ -97,3 +110,10 @@ async def remove_balance(user_id: int, amount: int):
         )
         await db.commit()
 
+async def log_transaction(user_id: int, action:str, amount: int, balance_after: int):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            "INSERT INTO transaction_log (user_id, action, amount, balance_after) VALUES (?, ?, ?, ?)",
+            (user_id, action, amount, balance_after)
+        )
+        await db.commit()

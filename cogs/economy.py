@@ -40,6 +40,8 @@ class Economy(commands.Cog):
         await interaction.response.send_message(
             f" You worked and earned **{earned} coins**"
         )
+        new_bal = await database.get_balance(user_id)
+        await database.log_transaction(user_id, "Worked", earned, new_bal)
     @app_commands.command(name="gamba", description="Bet your coins")
     async def gamble(self, interaction: discord.Interaction, amount: int):
         user_id = interaction.user.id
@@ -52,11 +54,16 @@ class Economy(commands.Cog):
                 await interaction.response.send_message(
                     f" You WON **{amount} coins**"
                 )
+                new_bal = await database.get_balance(user_id)
+                await database.log_transaction(user_id, "Gambled/Won", amount, new_bal)
+
             else:
                 await database.remove_balance(user_id, amount)
                 await interaction.response.send_message(
                     f" You lost **{amount} coins**"
                 )
+                new_bal = await database.get_balance(user_id)
+                await database.log_transaction(user_id, "Gambled/Lost", amount, new_bal)
         else:
             await interaction.response.send_message(
                 f" You dont have **{amount} coins**"
@@ -75,11 +82,16 @@ class Economy(commands.Cog):
                 await database.set_jail_until(user_id, jail_until)
                 await interaction.response.send_message(
                     "You got caught! You will serve an hour in jail.")
+                new_bal = await database.get_balance(user_id)
+                await database.log_transaction(user_id, "Thrown in jail", 0, new_bal)
             else:
                 await database.rob_bank(user_id, bank_value)
                 await interaction.response.send_message(
                     f"You got away! You collected **{bank_value}**"
-            )
+                )
+                new_bal = await database.get_balance(user_id)
+                await database.log_transaction(user_id, "Robbed a bank", 500, new_bal)
+
         else:
             await interaction.response.send_message(
                 "You're in jail! Can't do the time? Don't do the crime!")
@@ -92,27 +104,37 @@ class Economy(commands.Cog):
         j_time = await database.get_jail_until(user_id)
         homie_j_time = await database.get_jail_until(target.id)
         now = int(time.time())
-        if homie_j_time > now: # ( Target is locked up ) ( PATCH IN JAILBREAKING SELF )
-            if j_time < now: # ( User not in jail )
-                if get_away_time < 6: # ( Successful Attempt )
-                    jail_until = now - 300
-                    await database.set_jail_until(homie, jail_until)
-                    await interaction.response.send_message(f" {target.mention} is free!")
-                else: # ( Failed Attempt )
-                    jail_until = now + 7200
-                    await database.set_jail_until(user_id, jail_until)
-                    await interaction.response.send_message("You were caught and given 2 hours jail time.")
-            else: # ( User is in jail )
-                if get_away_time < 3: # ( Successful Attempt )
-                    jail_until = now - 300
-                    await database.set_jail_until(homie, jail_until)
-                    await interaction.response.send_message(f" {target.mention} is free!")
-                else: # ( Failed Attempt )
-                    jail_until = now + 7200
-                    await database.set_jail_until(user_id, jail_until)
-                    await interaction.response.send_message("You're caught and given 2 hours jail time.")
-        else: # ( Target not in jail )
-            await interaction.response.send_message(f"{target.mention} is already free!")
+        if homie != user_id:
+            if homie_j_time > now:  # ( Target is locked up ) ( PATCH IN JAILBREAKING SELF )
+                if j_time < now:  # ( User not in jail )
+                    if get_away_time < 6:  # ( Successful Attempt )
+                        jail_until = now - 300
+
+                        await database.set_jail_until(homie, jail_until)
+                        await interaction.response.send_message(f" {target.mention} is free!")
+                        new_bal = await database.get_balance(user_id)
+                        await database.log_transaction(user_id, f"Jailbroke {homie}", 0, new_bal)
+                    else:  # ( Failed Attempt )
+                        jail_until = now + 7200
+                        await database.set_jail_until(user_id, jail_until)
+                        await interaction.response.send_message("You were caught and given 2 hours jail time.")
+                else:  # ( User is in jail )
+                    if get_away_time < 3:  # ( Successful Attempt )
+                        jail_until = now - 300
+                        await database.set_jail_until(homie, jail_until)
+                        await interaction.response.send_message(f" {target.mention} is free!")
+                        new_bal = await database.get_balance(user_id)
+                        await database.log_transaction(user_id, f"Jailbroke {homie}", 0, new_bal)
+                    else:  # ( Failed Attempt )
+                        jail_until = now + 7200
+                        await database.set_jail_until(user_id, jail_until)
+                        await interaction.response.send_message("You're caught and given 2 hours jail time.")
+                        new_bal = await database.get_balance(user_id)
+                        await database.log_transaction(user_id, "Caught Jailbreaking", 0, new_bal)
+            else:  # ( Target not in jail )
+                await interaction.response.send_message(f"{target.mention} is already free!")
+        else:
+            await interaction.response.send_message(f" You can't jailbreak yourself!")
 
 async def setup(bot):
     await bot.add_cog(Economy(bot))
