@@ -11,6 +11,20 @@ WORK_COOLDOWN = 3600
 class Economy(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+    # Helper functions
+    async def resolve_heist(self, user_id, amount) -> tuple [bool, int]:
+        got_away = random.randint(0, 10) <= 5
+        if got_away:
+            await database.rob_bank(user_id, amount)
+            new_bal = await database.get_balance(user_id)
+            await database.log_transaction(user_id, "Robbed a bank", amount, new_bal)
+        else:
+            jail_until = int(time.time()) + 3600
+            await database.set_jail_until(user_id, jail_until)
+            new_bal = await database.get_balance(user_id)
+            await database.log_transaction(user_id, "Thrown in jail", 0, new_bal)
+        return got_away, new_bal
+
     async def resolve_gamba(self, user_id, amount) -> tuple [bool, int, int]:
         won = random.randint(0,1) == 1
         if won:
@@ -69,33 +83,23 @@ class Economy(commands.Cog):
             await interaction.response.send_message(f"You WON **{amount} coins**")
         else:
             await interaction.response.send_message(f"You lost **{amount} coins**")
+
     @app_commands.command(name="heist", description="risk jail time for a big payout")
     async def heist(self, interaction: discord.Interaction):
         user_id = interaction.user.id
         bank_value = 500
-        get_away_time = random.randint(0, 10)
         jail_time = await database.get_jail_until(user_id)
-        if jail_time < int(time.time()):
-            if get_away_time > 5:
-                # Await update jail_time
-                now = int(time.time())
-                jail_until = 0
-                await database.set_jail_until(user_id, jail_until)
-                await interaction.response.send_message(
-                    "You got caught! You will serve an hour in jail.")
-                new_bal = await database.get_balance(user_id)
-                await database.log_transaction(user_id, "Thrown in jail", 0, new_bal)
-            else:
-                await database.rob_bank(user_id, bank_value)
-                await interaction.response.send_message(
-                    f"You got away! You collected **{bank_value}**"
-                )
-                new_bal = await database.get_balance(user_id)
-                await database.log_transaction(user_id, "Robbed a bank", 500, new_bal)
 
+        if jail_time > int(time.time()):
+            await interaction.response.send_message("You're in jail! Can't do the time? Don't do the crime!")
+            return
+
+        got_away, new_bal = await self.resolve_heist(user_id, bank_value)
+        if got_away:
+            await interaction.response.send_message(f"You got away! You collected **{bank_value}** coins!")
         else:
-            await interaction.response.send_message(
-                "You're in jail! Can't do the time? Don't do the crime!")
+            await interaction.response.send_message("You got caught! You will serve an hour in jail.")
+
     @app_commands.command(name="money_wire", description="Wire coins to another player")
     async def money_wire(self, interaction: discord.Interaction, target: discord.Member, amount: int):
         await database.add_balance(target.id, amount)
