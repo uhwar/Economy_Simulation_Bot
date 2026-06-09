@@ -2,28 +2,35 @@ import aiosqlite
 
 DB_PATH = "economy.db"
 
+MIGRATIONS = [
+    "ALTER TABLE users ADD COLUMN jail_until REAL DEFAULT 0",
+]
 
 async def setup_db():
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("""
             CREATE TABLE IF NOT EXISTS users (
-                user_id   INTEGER PRIMARY KEY,
-                balance   INTEGER DEFAULT 0,
-                last_work INTEGER DEFAULT 0
+                user_id    INTEGER PRIMARY KEY,
+                balance    INTEGER DEFAULT 0,
+                last_work  INTEGER DEFAULT 0,
+                jail_until REAL    DEFAULT 0
             )
         """)
-        await db.commit()
-    async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("""
             CREATE TABLE IF NOT EXISTS transaction_log (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                action TEXT NOT NULL,
-                amount INTEGER NOT NULL,
+                id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id       INTEGER NOT NULL,
+                action        TEXT    NOT NULL,
+                amount        INTEGER NOT NULL,
                 balance_after INTEGER NOT NULL,
-                time_stamp TEXT DEFAULT (datetime('now'))
+                time_stamp    TEXT    DEFAULT (datetime('now'))
             )
         """)
+        for migration in MIGRATIONS:
+            try:
+                await db.execute(migration)
+            except Exception:
+                pass
         await db.commit()
 
 # Bank Heist Functions

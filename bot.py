@@ -9,7 +9,7 @@ load_dotenv()
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 GUILD_ID = os.getenv("GUILD_ID")
-
+    
 if not TOKEN:
     raise ValueError("DISCORD_TOKEN not found in .env file")
 if not GUILD_ID:
