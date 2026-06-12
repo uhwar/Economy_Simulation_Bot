@@ -1,167 +1,188 @@
 # Discord Economy Bot
 
-A fully functional Discord economy bot built with Python, `discord.py`, and SQLite. This project demonstrates modern bot development with slash commands, async/await patterns, database management, and complex game mechanics.
+A Discord bot implementing an economy system with async Python, SQLite database management, and modular architecture using Discord.py.
 
-## 🚀 Project Overview
+## Technical Implementation
 
-This Discord bot features a comprehensive economy system where users can earn coins through various activities, gamble their earnings, participate in high-risk heists, and even get involved in jail-based gameplay mechanics. The project showcases clean architecture with separation of concerns and proper async patterns.
+### **Concepts Demonstrated**
+- **Async/Await Patterns** - Non-blocking I/O operations with Python coroutines
+- **Database Design** - SQLite schema design with foreign key relationships and audit logging
+- **Modular Architecture** - Separation of concerns using Discord.py cogs and shared data layer
+- **Financial Calculations** - Compound interest implementation with time-based accrual
+- **Production Practices** - Environment variable configuration and secure token management
 
-## Explicit Goals
+## Technical Stack
+- **Python 3.8+** with async/await patterns
+- **discord.py** for Discord API interaction
+- **aiosqlite** for async SQLite operations  
+- **SQLite** for data persistence
+- **python-dotenv** for configuration management
 
-- Create a self running economy
-- Create a fun experience for players
-- Understand and learn asynchronous programming
-- Understand and learn database fundamentals (further than syntax learned from books)
-- Advance my understanding of data structures
+## Architecture
 
+```mermaid
+flowchart TD
+    A[Discord User] --> B[/Slash Command/]
+    B --> C[bot.py - Main Entry]
+    C --> D[cogs/economy.py - Game Logic]
+    C --> E[cogs/banking.py - Financial System]
+    C --> F[cogs/admin.py - Admin Tools]
+    
+    D --> G[database.py - Data Layer]
+    E --> G
+    F --> G
+    
+    G --> H[(economy.db - SQLite)]
+```
 
-
-## 🛠️ Tech Stack
-
-- **Python 3.x** - Core programming language
-- **discord.py** - Discord API interaction and slash commands
-- **aiosqlite** - Async SQLite database operations
-- **SQLite** - Lightweight file-based database
-- **async/await** - Asynchronous programming for handling multiple users
-- **Discord Chat** - Modern Discord bot interface
-
-## 📁 Project Structure
-
+## Project Structure
 ```
 Economy_Bot/
-├── bot.py              # Main bot entry point and configuration
-├── database.py         # All database operations and SQL management
-├── cogs/
-│   └── economy.py      # Economy commands and game logic
-├── adjust_balance.py   # Admin utility for balance adjustments
-├── economy.db          # SQLite database file
-└── notes/              # Project documentation and planning
+├── bot.py              # Bot configuration and startup
+├── database.py         # Database operations and schema
+├── cogs/               # Modular command groups
+│   ├── economy.py      # Core economy commands
+│   ├── banking.py      # Banking system with interest
+│   └── admin.py        # Administrative utilities
+├── adjust_balance.py   # Utility for balance adjustments
+├── .env.example        # Environment template
+└── .gitignore          # Version control exclusions
 ```
 
-## 🎮 Core Features
-
-### **Basic Economy**
-- **`/balance`** - Check your current coin balance
-- **`/work`** - Earn coins with a 1-hour cooldown system
-- **`/gamba`** - 50/50 gambling with double-or-nothing mechanics
-
-### **Advanced Gameplay**
-- **`/heist`** - High-risk bank robbery with jail consequences
-  - 50% chance to escape with 500 coins
-  - 50% chance to get caught and serve jail time
-- **`/jailbreak`** - Rescue jailed players with risk mechanics
-  - Higher success rate when not in jail yourself
-  - Risk getting jailed yourself on failed attempts
-
-### **Jail System**
-- Dynamic jail timers based on actions
-- Jail time prevents certain activities
-- Jailbreaking mechanics with risk/reward
-
-## 🧠 Key Learnings & Concepts
-
-### **Async/Await Architecture**
-- Built with proper async/await patterns for handling multiple users simultaneously
-- Non-blocking database operations using `aiosqlite`
-- Event-driven architecture for Discord interaction handling
-
-### **Database Design**
-- SQLite with `aiosqlite` for async database operations
-- Proper SQL injection prevention using parameterized queries
-- Atomic operations for balance updates
-- Schema design supporting multiple game mechanics
-
-### **Software Architecture**
-- **Separation of Concerns**: Clear division between bot logic, database operations, and command handling
-- **Modular Design**: Commands organized in cogs for maintainability
-- **Error Handling**: Graceful handling of user input errors and edge cases
-
-### **Game Design Principles**
-- **Risk/Reward Balance**: Gambling and heists have balanced probabilities
-- **Progression Systems**: Work cooldowns encourage regular engagement
-- **Social Interaction**: Jailbreaking promotes player interaction
-- **Consequence Mechanics**: Jail system adds depth to gameplay
-
-## 🔧 Technical Implementation
-
-### **Database Schema**
+## Database Design
 ```sql
+-- Primary user data
 CREATE TABLE users (
     user_id   INTEGER PRIMARY KEY,
     balance   INTEGER DEFAULT 0,
     last_work INTEGER DEFAULT 0,
     jail_until INTEGER DEFAULT 0
 )
+
+-- Banking system with compound interest
+CREATE TABLE bank_accounts (
+    user_id INTEGER PRIMARY KEY,
+    bank_balance INTEGER DEFAULT 0,
+    interest_rate FLOAT DEFAULT 0.01,
+    last_interest_calculation INTEGER DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+)
+
+-- Transaction audit trail
+CREATE TABLE transaction_log (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id       INTEGER NOT NULL,
+    action        TEXT    NOT NULL,
+    amount        INTEGER NOT NULL,
+    balance_after INTEGER NOT NULL,
+    time_stamp    TEXT    DEFAULT (datetime('now'))
+)
 ```
 
-### **Command Structure**
-- All commands use Discord's modern slash command system
-- Proper validation of user input and balances
-- Cooldown systems implemented at database level
-- Real-time jail status checks
+## Key Technical Implementation
 
-### **Async Patterns**
-- All I/O operations are async to prevent blocking
-- Proper connection management with context managers
-- Thread-safe database operations
+### Async Database Operations
+```python
+async def get_balance(user_id: int) -> int:
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute(
+            "SELECT balance FROM users WHERE user_id = ?", (user_id,)
+        ) as cursor:
+            row = await cursor.fetchone()
+            return row[0] if row else 0
+```
 
-## 🚀 Getting Started
+### Compound Interest Calculation
+```python
+async def calculate_interest(user_id: int):
+    async with aiosqlite.connect(DB_PATH) as db:
+        # Get current balance and last calculation
+        async with db.execute(
+            "SELECT bank_balance, last_interest_calculation, interest_rate FROM bank_accounts WHERE user_id = ?", (user_id,)
+        ) as cursor:
+            row = await cursor.fetchone()
+            if not row:
+                return
+            
+            bank_balance = row[0] or 0
+            last_calc = row[1] or 0
+            interest_rate = row[2] or 0.01
+        
+        now = int(time.time())
+        if last_calc > 0:
+            days = (now - last_calc) // 86400
+        else:
+            days = 0
+        
+        if days > 0 and bank_balance > 0:
+            # Compound interest: new_balance = balance * (1 + rate)^days
+            new_balance = int(bank_balance * ((1 + interest_rate) ** days))
+            await db.execute(
+                "UPDATE bank_accounts SET bank_balance = ?, last_interest_calculation = ? WHERE user_id = ?",
+                (new_balance, now, user_id)
+            )
+            await db.commit()
+```
 
-### Prerequisites
-- Python 3.8+
-- Discord Bot Token
-- Required packages: `discord.py`, `aiosqlite`
+### Modular Command System
+```python
+# bot.py - loading extensions
+async def setup_hook(self):
+    await database.setup_db()
+    await self.load_extension("cogs.economy")
+    await self.load_extension("cogs.banking")
+    await self.load_extension("cogs.admin")
+    await self.tree.sync(guild=MY_GUILD)
 
-### Installation
-1. Clone the repository
-2. Install dependencies: `pip install discord.py aiosqlite`
-3. Add your bot token to `bot.py`
-4. Run the bot: `python bot.py`
+# cogs/banking.py - command implementation
+@app_commands.command(name="bank_deposit", description="Deposit coins to your bank account")
+async def bank_deposit(self, interaction: discord.Interaction, amount: int):
+    user_id = interaction.user.id
+    if amount <= 0:
+        await interaction.response.send_message("Amount must be more than 0.")
+        return
+    
+    wallet_bal = await database.get_balance(user_id)
+    if amount > wallet_bal:
+        await interaction.response.send_message("You don't have enough coins in your wallet.")
+        return
+    
+    await database.calculate_interest(user_id)
+    await database.deposit_to_bank(user_id, amount)
+    
+    new_wallet = await database.get_balance(user_id)
+    new_bank = await database.get_bank_balance(user_id)
+    
+    await interaction.response.send_message(
+        f"Deposited {amount} coins to your bank.\n"
+        f"Wallet: {new_wallet} coins\n"
+        f"Bank: {new_bank} coins"
+    )
+```
 
-## 📈 Future Enhancements
+## Features
+- **/balance** - Check user balance
+- **/work** - Earn coins with cooldown system
+- **/gamba** - 50/50 gambling mechanics
+- **/bank_balance** - View bank balance with interest
+- **/bank_deposit** - Deposit coins to bank account
+- **/bank_withdraw** - Withdraw from bank
+- **/bank_interest** - Interest calculation details
+- **/heist** - Risk/reward bank robbery
+- **/jailbreak** - Player jail system
+- **/give_player_balance** - Admin balance management
+- **/admin_bailout** - Admin jail management
 
-### Planned Features (from project notes)
-- **Multiple Jobs** with different mechanics and rewards
-- **Titles and Reputation System** influencing job availability
-- **Pet System** with feeding and maintenance mechanics
-- **Shop System** with rotating inventory
-- **Offshore Banking** for hiding illicit gains
-- **Leaderboards** and competitive elements
-- **Mini-games** for job activities
+## Installation
+```bash
+pip install discord.py aiosqlite python-dotenv
+cp .env.example .env
+# Edit .env with DISCORD_TOKEN and GUILD_ID
+python bot.py
+```
 
-### Technical Improvements
-- Environment variable configuration
-- Proper logging and error tracking
-- Unit and integration testing
-- Docker containerization
-- Web dashboard for bot management
-
-## 🤝 Contributing
-
-This project was built as a learning exercise to understand:
-- Modern Discord bot development with slash commands
-- Async programming patterns in Python
-- Database design and management
-- Game mechanics implementation
-- Clean architecture and code organization
-
-The comprehensive notes in the `notes/` folder document the entire learning journey, from basic concepts to advanced implementation details.
-
-## 📚 Learning Outcomes
-
-Through this project, I gained experience with:
-- Building production-ready Discord bots
-- Designing and implementing database schemas
-- Creating engaging game mechanics with proper balance
-- Writing maintainable, well-documented code
-- Debugging async applications
-- Managing state across multiple users
-- Implementing proper error handling and validation
-
-## ⚠️ Note
-
-This bot is for educational purposes and showcases modern Discord bot development techniques. Always follow Discord's Terms of Service and guidelines when deploying bots.
-
----
-
-*Built with Python, discord.py, and a lot of learning!*
+## Environment Configuration
+```env
+DISCORD_TOKEN=your_bot_token
+GUILD_ID=your_guild_id
+```

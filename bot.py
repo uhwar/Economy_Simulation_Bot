@@ -29,6 +29,7 @@ class MyBot(commands.Bot):
         await database.setup_db()
         await self.load_extension("cogs.economy")
         await self.load_extension("cogs.admin")
+        await self.load_extension("cogs.banking")
         self.tree.copy_global_to(guild=MY_GUILD)
         await self.tree.sync(guild=MY_GUILD)
         print("Bot ready.")

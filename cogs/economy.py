@@ -5,13 +5,13 @@ from discord import app_commands
 from discord.ext import commands
 import database
 
-WORK_COOLDOWN = 3600
+WORK_COOLDOWN = 3600 # 1 hour in seconds
 
 # Contains all functions
 class Economy(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-    # Helper functions
+    # ~~~ Helper functions ~~~
     async def resolve_heist(self, user_id, amount) -> tuple [bool, int]:
         got_away = random.randint(0, 10) <= 5
         if got_away:
@@ -40,12 +40,14 @@ class Economy(commands.Cog):
 
     @app_commands.command(name="balance", description="Check your balance")
     async def balance(self, interaction: discord.Interaction):
+        # Get user's coin balance from database
         bal = await database.get_balance(interaction.user.id)
         await interaction.response.send_message(
             f"💰 {interaction.user.mention}, you have **{bal} coins**"
         )
     @app_commands.command(name="work", description="go to work")
     async def work(self, interaction: discord.Interaction):
+        # Work command - earn coins with 1-hour cooldown
         user_id = interaction.user.id
         now = int(time.time())
         last = await database.get_last_work(user_id)
@@ -71,6 +73,7 @@ class Economy(commands.Cog):
         await database.log_transaction(user_id, "Worked", earned, new_bal)
     @app_commands.command(name="gamba", description="Bet your coins")
     async def gamble(self, interaction: discord.Interaction, amount: int):
+        # Gambling command - 50/50 chance to double or lose bet
         user_id = interaction.user.id
         bal = await database.get_balance(user_id)
 
@@ -86,6 +89,7 @@ class Economy(commands.Cog):
 
     @app_commands.command(name="heist", description="risk jail time for a big payout")
     async def heist(self, interaction: discord.Interaction):
+        # Bank heist command - 50% chance to get 500 coins or get jailed for 1 hour
         user_id = interaction.user.id
         bank_value = 500
         jail_time = await database.get_jail_until(user_id)
@@ -102,6 +106,7 @@ class Economy(commands.Cog):
 
     @app_commands.command(name="money_wire", description="Wire coins to another player")
     async def money_wire(self, interaction: discord.Interaction, target: discord.Member, amount: int):
+        # Send coins to another player (admin/development command)
         await database.add_balance(target.id, amount)
         await interaction.response.send_message(f" {target.id} was sent {amount} coins!")
         new_bal = await database.get_balance(target.id)
@@ -109,6 +114,7 @@ class Economy(commands.Cog):
 
     @app_commands.command(name="jailbreak", description="risk jail time to rescue a homie (higher chance to fail if your also in jail")
     async def jailbreak(self, interaction: discord.Interaction, target: discord.Member):
+        # Jailbreak command - try to free another player from jail
         user_id = interaction.user.id
         homie = target.id
         get_away_time = random.randint(0, 10)
