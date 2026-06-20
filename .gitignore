@@ -57,3 +57,5 @@ desktop.ini
 *.bak
 *.backup
 *~
+# Portfolio planning
+PORTFOLIO_POLISH_PLAN.md

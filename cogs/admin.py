@@ -1,5 +1,3 @@
-from xxlimited import Null
-
 import discord
 import time
 import random
@@ -13,6 +11,7 @@ class Admin(commands.Cog):
     @app_commands.command(name="give_player_balance", description="Add coins to a user's balance")
     @app_commands.checks.has_role("Admin")
     async def add_balance(self, interaction: discord.Interaction, target: discord.Member, amount: int):
+        # Admin command - add coins to any player's balance
         await database.add_balance(target.id, amount)
         new_bal = await database.get_balance(target.id)
         await interaction.response.send_message(f"You added {amount} coins to {target.mention}'s balance")
@@ -25,6 +24,7 @@ class Admin(commands.Cog):
     @app_commands.command(name="admin_bailout", description="Removes a players from the jail")
     @app_commands.checks.has_role("Admin")
     async def admin_bailout(self, interaction: discord.Interaction, target: discord.Member):
+        # Admin command - free a player from jail
         now = int(time.time())
         in_jail = await database.get_jail_until(target.id)
         user_id = interaction.user.id
