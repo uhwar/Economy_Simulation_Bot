@@ -161,12 +161,9 @@ async def bank_deposit(self, interaction: discord.Interaction, amount: int):
 ```
 
 ## Features
-- **/balance** - Check user balance
-- **/work** - Earn coins with cooldown system
-- **/gamba** - 50/50 gambling mechanics
-- **/bank_balance** - View bank balance with interest
+- **/work** - Cooldown based work system for economy stimulation
+- **/gamba** - Gambling system.
 - **/bank_deposit** - Deposit coins to bank account
-- **/bank_withdraw** - Withdraw from bank
 - **/bank_interest** - Interest calculation details
 - **/heist** - Risk/reward bank robbery
 - **/jailbreak** - Player jail system
