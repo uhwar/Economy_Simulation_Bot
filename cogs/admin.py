@@ -4,7 +4,7 @@ import random
 from discord import app_commands
 from discord.ext import commands
 import database
-
+    
 class Admin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -34,5 +34,20 @@ class Admin(commands.Cog):
             await interaction.response.send_message(f"{target.mention} is free now!")
         else:
             await interaction.response.send_message("User is already free!")
+
+    @app_commands.command(name="jail_player", description="Place a player in jail")
+    @app_commands.checks.has_role("Admin")
+    async def jail_player(self, interaction: discord.Interaction, target:discord.Member):
+        now = int(time.time())
+        jail_until = int(time.time()) + 3600
+        in_jail = await database.get_jail_until(target.id)
+        user_id = interaction.user.id
+        if in_jail < now:
+            await database.set_jail_until(target.id, jail_until)
+            await database.log_transaction(user_id, f"Admin put {target.id} in jail", 0, 0)
+            await interaction.response.send_message(f"{target.mention} has been sent to jail")
+        else:
+            await interaction.response.send_message(f"{target.mention} is currently a free man")
+
 async def setup(bot):
     await bot.add_cog(Admin(bot))
