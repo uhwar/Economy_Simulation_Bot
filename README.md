@@ -172,9 +172,18 @@ async def bank_deposit(self, interaction: discord.Interaction, amount: int):
 
 ## Installation
 ```bash
-pip install discord.py aiosqlite python-dotenv
+# Clone repository
+git clone https://github.com/yourusername/economy-bot.git
+cd economy-bot
+
+# Install dependencies from requirements.txt
+pip install -r requirements.txt
+
+# Configure environment
 cp .env.example .env
 # Edit .env with DISCORD_TOKEN and GUILD_ID
+
+# Run the bot
 python bot.py
 ```
 
@@ -183,3 +192,17 @@ python bot.py
 DISCORD_TOKEN=your_bot_token
 GUILD_ID=your_guild_id
 ```
+
+## Project Quality
+
+### Error Handling
+All database operations include try/except error handling with graceful fallbacks:
+- Database errors are logged to console
+- Functions return sensible defaults (0 for amounts, None for failures)
+- Bot continues running even if individual operations fail
+
+### Dependencies Management
+Project uses `requirements.txt` for reproducible installations:
+- **discord.py==2.3.2** - Discord API interaction
+- **aiosqlite==1.3.0** - Async SQLite database operations
+- **python-dotenv==1.0.0** - Environment variable management
