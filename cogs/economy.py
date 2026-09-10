@@ -87,6 +87,8 @@ class Economy(commands.Cog):
         else:
             await interaction.response.send_message(f"You lost **{amount} coins**")
 
+
+
     @app_commands.command(name="heist", description="risk jail time for a big payout")
     async def heist(self, interaction: discord.Interaction):
         # Bank heist command - 50% chance to get 500 coins or get jailed for 1 hour

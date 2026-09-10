@@ -30,6 +30,7 @@ class MyBot(commands.Bot):
         await self.load_extension("cogs.economy")
         await self.load_extension("cogs.admin")
         await self.load_extension("cogs.banking")
+        await self.load_extension("cogs.raffle")
         self.tree.copy_global_to(guild=MY_GUILD)
         await self.tree.sync(guild=MY_GUILD)
         print("Bot ready.")

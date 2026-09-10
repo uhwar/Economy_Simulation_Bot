@@ -27,12 +27,14 @@ flowchart TD
     C --> D[cogs/economy.py - Game Logic]
     C --> E[cogs/banking.py - Financial System]
     C --> F[cogs/admin.py - Admin Tools]
+    C --> G[cogs/raffle.py - Raffle System]
     
-    D --> G[database.py - Data Layer]
-    E --> G
-    F --> G
+    D --> H[database.py - Data Layer]
+    E --> H
+    F --> H
+    G --> H
     
-    G --> H[(economy.db - SQLite)]
+    H --> I[(economy.db - SQLite)]
 ```
 
 ## Project Structure
@@ -41,10 +43,12 @@ Economy_Bot/
 ├── bot.py              # Bot configuration and startup
 ├── database.py         # Database operations and schema
 ├── cogs/               # Modular command groups
-│   ├── economy.py      # Core economy commands
-│   ├── banking.py      # Banking system with interest
-│   └── admin.py        # Administrative utilities
+│   ├── economy.py      # Core economy commands (work, gamble, heist, jailbreak)
+│   ├── banking.py      # Banking system with compound interest
+│   ├── admin.py        # Administrative utilities
+│   └── raffle.py       # Timed raffle system with prize pot
 ├── adjust_balance.py   # Utility for balance adjustments
+├── run_bot.bat         # Windows batch script to run the bot
 ├── .env.example        # Environment template
 └── .gitignore          # Version control exclusions
 ```
@@ -162,13 +166,36 @@ async def bank_deposit(self, interaction: discord.Interaction, amount: int):
 
 ## Features
 - **/work** - Cooldown based work system for economy stimulation
-- **/gamba** - Gambling system.
+- **/gamba** - Gambling system (50/50 chance to double or lose bet)
+- **/heist** - Risk/reward bank robbery (50% success rate)
+- **/jailbreak** - Rescue teammates from jail with varying success rates
 - **/bank_deposit** - Deposit coins to bank account
-- **/bank_interest** - Interest calculation details
-- **/heist** - Risk/reward bank robbery
-- **/jailbreak** - Player jail system
+- **/bank_withdraw** - Withdraw coins from bank account
+- **/bank_interest** - View interest calculation details
+- **/raffle_start** - Start a timed raffle with configurable ticket price
+- **/raffle_enter** - Buy a ticket for the active raffle
 - **/give_player_balance** - Admin balance management
 - **/admin_bailout** - Admin jail management
+
+## Raffle System
+The raffle system provides a social gambling feature where multiple players can enter a raffle for a shared prize pool:
+
+```python
+# Start a raffle that runs for 5 minutes with 100-coin tickets
+/raffle_start ticket_price:100 minutes:5
+
+# Players enter the raffle
+/raffle_enter
+
+# After the timer expires, a winner is randomly selected
+# Winner receives the full prize pot (ticket_price × number_of_entries)
+```
+
+Key features:
+- **Automatic Timer** - Raffle automatically ends after specified duration
+- **Prize Pool** - All entry fees accumulate into a pot won by the randomly selected winner
+- **Per-Server Raffles** - Each Discord server maintains its own active raffle
+- **Duplicate Prevention** - Only one raffle can be active per server at a time
 
 ## Installation
 ```bash
@@ -183,7 +210,10 @@ pip install -r requirements.txt
 cp .env.example .env
 # Edit .env with DISCORD_TOKEN and GUILD_ID
 
-# Run the bot
+# Run the bot (Windows)
+run_bot.bat
+
+# Or run the bot directly (Any OS)
 python bot.py
 ```
 

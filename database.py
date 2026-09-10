@@ -82,21 +82,22 @@ async def get_jail_until(user_id: int):
 async def get_job(user_id: int):
     async with aiosqlite.connect(DB_PATH) as db:
         async with db.execute(
-            "SELECT job FROM users WHERE user_id = ?" (user_id,)
+            "SELECT job FROM users WHERE user_id = ?", (user_id,)
         ) as cursor:
             row = await cursor.fetchone()
             return row[0] if row else 0
 
-async def set_title(user_id: int, title: str)
+async def set_title(user_id: int, title: str):
     async with aiosqlite.connect(DB_PATH) as db:
-        async with db.execute(
+        await db.execute(
             "INSERT OR IGNORE INTO users (user_id) VALUES (?)",
-                (user_id,)
+            (user_id,)
         )
         await db.execute(
             "UPDATE users SET title = ? WHERE user_id = ?",
             (title, user_id)
         )
+        await db.commit()
 
 # Work Database Functions
 async def get_last_work(user_id: int) -> int:
