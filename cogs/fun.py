@@ -34,6 +34,5 @@ class Fun(commands.Cog):
     async def hello(self, interaction: discord.Interaction):
         greeting = random.choice(WOW_GREETINGS)
         await interaction.response.send_message(f"{greeting} {interaction.user.mention}")
-
 async def setup(bot):
     await bot.add_cog(Fun(bot))

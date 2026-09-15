@@ -7,6 +7,19 @@ import database
 
 WORK_COOLDOWN = 3600 # 1 hour in seconds
 
+JAIL_MESSAGES = [
+    "🚔 You got caught red-handed! Off to jail you go!",
+    "🔒 The authorities caught up with you. Time to face the music.",
+    "⚔️ You were apprehended! Looks like crime doesn't pay.",
+    "🛡️ The guards have you surrounded. You're going to jail!",
+    "💀 You didn't see that coming. Straight to the dungeon!",
+    "🎲 Your luck ran out. Locked up for 1 hour!",
+    "⛓️ Busted! The warden has a cell waiting for you.",
+    "👮 You're under arrest! Welcome to jail!",
+    "🔐 The plan went sideways. You're doing time now.",
+    "😤 Caught in the act! Jail time it is.",
+]
+
 # Contains all functions
 class Economy(commands.Cog):
     def __init__(self, bot):
@@ -104,7 +117,8 @@ class Economy(commands.Cog):
         if got_away:
             await interaction.response.send_message(f"You got away! You collected **{bank_value}** coins!")
         else:
-            await interaction.response.send_message("You got caught! You will serve an hour in jail.")
+            jail_msg = random.choice(JAIL_MESSAGES)
+            await interaction.response.send_message(jail_msg)
 
     @app_commands.command(name="money_wire", description="Wire coins to another player")
     async def money_wire(self, interaction: discord.Interaction, target: discord.Member, amount: int):
@@ -135,7 +149,8 @@ class Economy(commands.Cog):
                     else:  # ( Failed Attempt )
                         jail_until = now + 7200
                         await database.set_jail_until(user_id, jail_until)
-                        await interaction.response.send_message("You were caught and given 2 hours jail time.")
+                        jail_msg = random.choice(JAIL_MESSAGES)
+                        await interaction.response.send_message(f"{jail_msg} **2 hours jail time**")
                 else:  # ( User is in jail )
                     if get_away_time < 3:  # ( Successful Attempt )
                         jail_until = 0
@@ -146,7 +161,8 @@ class Economy(commands.Cog):
                     else:  # ( Failed Attempt )
                         jail_until = now + 7200
                         await database.set_jail_until(user_id, jail_until)
-                        await interaction.response.send_message("You're caught and given 2 hours jail time.")
+                        jail_msg = random.choice(JAIL_MESSAGES)
+                        await interaction.response.send_message(f"{jail_msg} **2 hours jail time**")
                         new_bal = await database.get_balance(user_id)
                         await database.log_transaction(user_id, "Caught Jailbreaking", 0, new_bal)
             else:  # ( Target not in jail )
