@@ -20,6 +20,32 @@ JAIL_MESSAGES = [
     "😤 Caught in the act! Jail time it is.",
 ]
 
+GAMBLE_WIN_MESSAGES = [
+    "🎉 Lady Luck smiles upon you! You won big!",
+    "💰 YES! The odds were in your favor!",
+    "🔥 That's what I'm talking about! You're on fire!",
+    "🎊 The dice gods have blessed you!",
+    "⭐ Outstanding! Your fortune has multiplied!",
+    "🏆 Victory is yours! The house loses this round!",
+    "🌟 Incredible luck! You doubled your coins!",
+    "💎 You struck gold! Lady Luck is on your side!",
+    "🎯 Bull's eye! Perfect timing!",
+    "👑 You're rolling hot! Another win!",
+]
+
+GAMBLE_LOSE_MESSAGES = [
+    "💔 The house always wins. Better luck next time.",
+    "😢 Your coins are gone. That didn't go as planned.",
+    "🎰 The slots have spoken. You lost it all.",
+    "😭 Lady Luck has abandoned you. Your coins vanished.",
+    "💸 Ouch! Your wallet is lighter now.",
+    "🔴 The wheel stops... and you lose.",
+    "😞 Not your day. The dice weren't kind.",
+    "🎪 The house takes their cut. You're broke.",
+    "📉 Your fortune took a nosedive.",
+    "🌧️ The luck ran dry. Better luck next time.",
+]
+
 # Contains all functions
 class Economy(commands.Cog):
     def __init__(self, bot):
@@ -96,9 +122,11 @@ class Economy(commands.Cog):
 
         won, payout, new_bal = await self.resolve_gamba(user_id, amount)
         if won:
-            await interaction.response.send_message(f"You WON **{amount} coins**")
+            msg = random.choice(GAMBLE_WIN_MESSAGES)
+            await interaction.response.send_message(f"{msg} You won **{payout} coins**!")
         else:
-            await interaction.response.send_message(f"You lost **{amount} coins**")
+            msg = random.choice(GAMBLE_LOSE_MESSAGES)
+            await interaction.response.send_message(f"{msg} You lost **{amount} coins**.")
 
 
 
