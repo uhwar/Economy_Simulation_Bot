@@ -27,7 +27,12 @@ class MyBot(commands.Bot):
 
     async def setup_hook(self):
         await database.setup_db()
-        await self.load_extension("cogs.economy")
+        await self.load_extension("cogs.balance")
+        await self.load_extension("cogs.work")
+        await self.load_extension("cogs.gambling")
+        await self.load_extension("cogs.heist")
+        await self.load_extension("cogs.jailbreak")
+        await self.load_extension("cogs.transfers")
         await self.load_extension("cogs.admin")
         await self.load_extension("cogs.banking")
         await self.load_extension("cogs.raffle")
