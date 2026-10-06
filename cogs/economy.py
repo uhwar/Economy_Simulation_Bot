@@ -46,6 +46,32 @@ GAMBLE_LOSE_MESSAGES = [
     "🌧️ The luck ran dry. Better luck next time.",
 ]
 
+HEIST_SUCCESS_MESSAGES = [
+    "🎯 You snuck past the guards and grabbed the loot!",
+    "💼 In and out like a pro! The heist was flawless!",
+    "🕵️ You cracked the vault! Nobody even noticed!",
+    "🚀 Mission impossible? More like mission accomplished!",
+    "🏃 You made a clean getaway with the goods!",
+    "🔓 You picked the lock and claimed your prize!",
+    "🎪 The perfect crime! You're in and out!",
+    "⚡ Lightning quick reflexes! You got away clean!",
+    "🌙 Under cover of darkness, you made your escape!",
+    "🎭 Oscar-worthy performance! Nobody suspected a thing!",
+]
+
+HEIST_FAIL_MESSAGES = [
+    "🚔 The cops spotted you! You're going to jail!",
+    "🔒 Security caught you red-handed! Straight to lockup!",
+    "⚠️ The alarm went off! The guards are everywhere!",
+    "🛡️ You couldn't escape the guards. Jail time!",
+    "💥 Your cover was blown! You're under arrest!",
+    "📹 The cameras caught everything! You're busted!",
+    "🚨 Sirens wailing! You didn't make it out in time!",
+    "😱 Trapped! The exit was sealed! Off to jail!",
+    "🎪 The heist went south real quick. You got caught!",
+    "⛓️ No escape! The authorities have you surrounded!",
+]
+
 # Contains all functions
 class Economy(commands.Cog):
     def __init__(self, bot):
@@ -143,10 +169,11 @@ class Economy(commands.Cog):
 
         got_away, new_bal = await self.resolve_heist(user_id, bank_value)
         if got_away:
-            await interaction.response.send_message(f"You got away! You collected **{bank_value}** coins!")
+            msg = random.choice(HEIST_SUCCESS_MESSAGES)
+            await interaction.response.send_message(f"{msg}\n💰 You collected **{bank_value} coins**!")
         else:
-            jail_msg = random.choice(JAIL_MESSAGES)
-            await interaction.response.send_message(jail_msg)
+            msg = random.choice(HEIST_FAIL_MESSAGES)
+            await interaction.response.send_message(msg)
 
     @app_commands.command(name="money_wire", description="Wire coins to another player")
     async def money_wire(self, interaction: discord.Interaction, target: discord.Member, amount: int):
